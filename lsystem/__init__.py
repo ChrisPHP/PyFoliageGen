@@ -9,6 +9,9 @@ class Cylinder:
         self.top = top
 
 class Lsystem:
+    def __init__(self, rules: list):
+        self.rules = rules
+
     def draw_lsystem(self, instructions: str, angle: float, distance: float) -> list:
         posx: float = 0
         posy: float = 0
@@ -78,11 +81,11 @@ class Lsystem:
     def rotate_vector(self, vector, axis, angle):
         axis = axis / np.linalg.norm(axis)
         rotation_matrix = np.array([
-            [np.cos(angle) + axis[0]**2 * (1 - np.cos(angle)), 
+            [np.cos(angle) + axis[0]**2 * (1 - np.cos(angle)),
             axis[0] * axis[1] * (1 - np.cos(angle)) - axis[2] * np.sin(angle), 
             axis[0] * axis[2] * (1 - np.cos(angle)) + axis[1] * np.sin(angle)],
             [axis[1] * axis[0] * (1 - np.cos(angle)) + axis[2] * np.sin(angle), 
-            np.cos(angle) + axis[1]**2 * (1 - np.cos(angle)), 
+            np.cos(angle) + axis[1]**2 * (1 - np.cos(angle)),
             axis[1] * axis[2] * (1 - np.cos(angle)) - axis[0] * np.sin(angle)],
             [axis[2] * axis[0] * (1 - np.cos(angle)) - axis[1] * np.sin(angle), 
             axis[2] * axis[1] * (1 - np.cos(angle)) + axis[0] * np.sin(angle), 
@@ -96,7 +99,6 @@ class Lsystem:
         """
         for i in range(len(cylinders)-1):
             bending_angle = bending_function(cylinders[i].base)
-            
             if (i > 0):
                 cylinders[i].base = cylinders[i-1].top
             else:
@@ -107,20 +109,14 @@ class Lsystem:
 
     def apply_rules(self, char: str) -> str:
         newstr: str = ""
-        if char == "F":
-            newstr = "FF"
-        elif char == "X":
-            rand_num = random.randrange(1, 100)
-            if rand_num <= 30:
-                newstr = "F[/+X]F[\\-X]+X"
-            elif rand_num > 30 and rand_num  < 60:
-                newstr = "F[\\+X]F[\\-X]+X"
-            elif rand_num >= 60:
-                newstr = "F[/+X]F[/-X]+X"
-        else:
+        for rule in self.rules:
+            for key, value in rule.items():
+                if char == key:
+                    newstr = value
+        if newstr == "":
             newstr = char
         return newstr
-    
+
     def process_string(self, oldstring: str) -> str:
         newstr: str = ""
         for char in oldstring:
