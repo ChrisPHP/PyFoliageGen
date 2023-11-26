@@ -3,7 +3,13 @@
         "axiom": "X",
         "rules": [
             {"F": "FF"},
-            {"X": "F[+X]F[-X]+XL"}
+            {"X": {
+                "rand": [
+                    "F[/+X]F[\\-X]+XL",
+                    "F[\\+X]F[\\-X]+XL",
+                    "F[/+X]F[/-X]+X:"]
+                }
+            }
         ],
         "leaf": {
             "axiom": "J",

@@ -3,6 +3,9 @@ import numpy as np
 
 class Objwriter:
     def create_independent_faces(self, faces, max_verts):
+        """This function make sure each object is using the correct
+           faces.
+        """
         updated_faces = []
         for f in faces:
             diff_f1 = max_verts + f[0]
@@ -12,6 +15,9 @@ class Objwriter:
         return updated_faces
 
     def generate_obj(self, file_path: str, mesh: Mesh, leaves: Mesh = None):
+        """This function creates the obj file for the L-system. It seperates the leaves
+           from the main stem making them seperate objs and can apply seperate textures
+        """
         vertices = mesh.vertices
         faces = mesh.faces
         max_verts = mesh.num_vertices
@@ -63,6 +69,9 @@ class Objwriter:
                     ))
 
     def generate_mtl(self, file_path: str):
+        """This function creates the mtl file for the l-system tree
+        """
+
         # Write MTL file
         with open("output/"+file_path + '.mtl', 'w') as mtl_file:
             mtl_file.write("# Material for Tree\n")
@@ -83,6 +92,8 @@ class Objwriter:
             mtl_file.write("illum 2\n")
 
     def calculate_normal(self, vertices, faces):
+        """Unused function to calculate the vertex nomrals
+        """
         normals = np.zeros((len(vertices), 3), dtype=float)
 
         for face in faces:

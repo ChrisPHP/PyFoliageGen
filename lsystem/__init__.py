@@ -14,6 +14,8 @@ class Lsystem:
         self.leaf = leaf
 
     def draw_lsystem(self, instructions: str, angle: float, distance: float, start_pos: list = [0,0,0], angles: list = [90, 90]) -> list:
+        """Main function for creating the 3D model for the Lsystem tree.
+        """
         posx: float = start_pos[0]
         posy: float = start_pos[1]
         posz: float = start_pos[2]
@@ -79,6 +81,9 @@ class Lsystem:
         return meshes, leaves
 
     def polar_to_cartesian(self, radian: float, horizontal_angle: float, vertical_angle: float) -> float:
+        """Function to convert polar to cartesian coordinates to allow for vertical and
+           horizontal angles.
+        """
         theta_horizontal = horizontal_angle * math.pi / 180
         theta_vertical = vertical_angle * math.pi / 180
         X = radian * math.cos(theta_vertical)
@@ -116,11 +121,17 @@ class Lsystem:
 
 
     def apply_rules(self, char: str) -> str:
+        """This function goes through the rules and applys the new string to return
+        """
         newstr: str = ""
         for rule in self.rules:
             for key, value in rule.items():
                 if char == key:
-                    newstr = value
+                    if "rand" in value:
+                        rand_num = random.randrange(0, len(value["rand"]))
+                        newstr = value["rand"][rand_num]
+                    else:
+                        newstr = value
         if newstr == "":
             newstr = char
         return newstr
