@@ -9,18 +9,20 @@ class Cylinder:
         self.top = top
 
 class Lsystem:
-    def __init__(self, rules: list):
+    def __init__(self, rules: list, leaf: dict = {}):
         self.rules = rules
+        self.leaf = leaf
 
-    def draw_lsystem(self, instructions: str, angle: float, distance: float) -> list:
-        posx: float = 0
-        posy: float = 0
-        posz: float = 0
-        vertical_angle: float = 90
-        horizontal_angle: float = 90
+    def draw_lsystem(self, instructions: str, angle: float, distance: float, start_pos: list = [0,0,0], angles: list = [90, 90]) -> list:
+        posx: float = start_pos[0]
+        posy: float = start_pos[1]
+        posz: float = start_pos[2]
+        vertical_angle: float = angles[0]
+        horizontal_angle: float = angles[1]
         tropism_bool = False
         stack: list = []
         meshes: list = []
+        leaves: list = []
         cylinders: list = []
         for char in instructions:
             if char == "F":
@@ -68,7 +70,13 @@ class Lsystem:
                     mesh = pymesh.generate_cylinder(p0=cyl.base, p1=cyl.top, r0=0.2, r1=0.2, num_segments=16)
                     meshes.append(mesh)
                 cylinders = []
-        return meshes
+            elif char == "L":
+                output = self.create_lsystem(5, self.leaf["axiom"], leaf=True)
+                leaf, _ = self.draw_lsystem(instructions=output, angle=22, distance=0.5, start_pos=[posx, posy, posz], angles=[vertical_angle, horizontal_angle])
+                merged_mesh = pymesh.merge_meshes(leaf)
+                mesh = pymesh.convex_hull(merged_mesh)
+                leaves.append(mesh)
+        return meshes, leaves
 
     def polar_to_cartesian(self, radian: float, horizontal_angle: float, vertical_angle: float) -> float:
         theta_horizontal = horizontal_angle * math.pi / 180
@@ -117,16 +125,29 @@ class Lsystem:
             newstr = char
         return newstr
 
-    def process_string(self, oldstring: str) -> str:
+    def apply_rules_leaf(self, char: str) -> str:
         newstr: str = ""
-        for char in oldstring:
-            newstr = newstr + self.apply_rules(char)
+        for rule in self.leaf["rules"]:
+            for key, value in rule.items():
+                if char == key:
+                    newstr = value
+        if newstr == "":
+            newstr = char
         return newstr
 
-    def create_lsystem(self, iterations: int, axiom: str) -> str:
+    def process_string(self, oldstring: str, leaf: bool) -> str:
+        newstr: str = ""
+        for char in oldstring:
+            if leaf == True:
+                newstr = newstr + self.apply_rules_leaf(char=char)
+            else:
+                newstr = newstr + self.apply_rules(char=char)
+        return newstr
+
+    def create_lsystem(self, iterations: int, axiom: str, leaf: bool) -> str:
         startstring: str = axiom
         endstring: str = ""
         for _ in range(iterations):
-            endstring = self.process_string(startstring)
+            endstring = self.process_string(oldstring=startstring, leaf=leaf)
             startstring = endstring
         return endstring

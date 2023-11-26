@@ -3,8 +3,17 @@
         "axiom": "X",
         "rules": [
             {"F": "FF"},
-            {"X": "F[/+X]F[\\-X]+X"}
-        ]
+            {"X": "F[+X]F[-X]+XL"}
+        ],
+        "leaf": {
+            "axiom": "J",
+            "rules": [
+                {"J": "[A][B]"},
+                {"A": "[+A]C"},
+                {"B": "[-B]C"},
+                {"C": "FFFC"}
+            ]
+        }
     },
     "leaf": {
         "axiom": "F",

@@ -2,14 +2,26 @@ from pymesh import Mesh
 import numpy as np
 
 class Objwriter:
-    def generate_obj(self, file_path: str, mesh: Mesh):
+    def create_independent_faces(self, faces, max_verts):
+        updated_faces = []
+        for f in faces:
+            diff_f1 = max_verts + f[0]
+            diff_f2 = max_verts + f[1]
+            diff_f3 = max_verts + f[2]
+            updated_faces.append([diff_f1, diff_f2, diff_f3])
+        return updated_faces
+
+    def generate_obj(self, file_path: str, mesh: Mesh, leaves: Mesh = None):
         vertices = mesh.vertices
         faces = mesh.faces
+        max_verts = mesh.num_vertices
 
         # Write OBJ file
         with open('output/'+file_path + '.obj', 'w') as obj_file:
-            obj_file.write("# Cube\n")
-            obj_file.write("usemtl cube_material\n")
+            obj_file.write("# Tree\n")
+            obj_file.write("g main_stem\n")
+            obj_file.write("o stem\n")
+            obj_file.write("usemtl stem_material\n")
 
             # Write vertices
             for vertex in vertices:
@@ -23,15 +35,52 @@ class Objwriter:
                     face[2]+1, face[2]+1, face[2]+1
                 ))
 
+            if  leaves != None:
+                obj_file.write("\n")
+                obj_file.write("g leaves\n")
+                obj_file.write("usemtl leaf_material\n")
+                index = 0
+                for leaf in leaves:
+                    index += 1
+                    obj_file.write("\n")
+                    obj_file.write(f"o leaf-{index}\n")
+                    obj_file.write("\n")
+
+                    leaf_vertices = leaf.vertices
+                    leaf_faces = self.create_independent_faces(leaf.faces, max_verts)
+                    max_verts += leaf.num_vertices
+
+                    # Write vertices
+                    for vertex in leaf_vertices:
+                        obj_file.write("v {} {} {}\n".format(*vertex))
+
+                    # Write faces
+                    for face in leaf_faces:
+                        obj_file.write("f {}/{}/{} {}/{}/{} {}/{}/{}\n".format(
+                            face[0]+1, face[0]+1, face[0]+1,
+                            face[1]+1, face[1]+1, face[1]+1,
+                            face[2]+1, face[2]+1, face[2]+1
+                    ))
+
     def generate_mtl(self, file_path: str):
         # Write MTL file
-        with open(file_path + '.mtl', 'w') as mtl_file:
-            mtl_file.write("# Material for Cube\n")
-            mtl_file.write("newmtl cube_material\n")
+        with open("output/"+file_path + '.mtl', 'w') as mtl_file:
+            mtl_file.write("# Material for Tree\n")
+            mtl_file.write("newmtl stem_material\n")
+            mtl_file.write("Ka 1.0 0.0 0.0\n")
+            mtl_file.write("Kd 1 0.0 0.0\n")
+            mtl_file.write("Ks 0.1 0.1 0.1\n")
+            mtl_file.write("Ns 10\n")
+            mtl_file.write("d 0.5\n")
+            mtl_file.write("illum 2\n")
+
+            mtl_file.write("newmtl leaf_material\n")
             mtl_file.write("Ka 0.0 1.0 0.0\n")
-            mtl_file.write("Kd 0.6 0.6 0.6\n")
-            mtl_file.write("Ks 0.9 0.9 0.9\n")
-            mtl_file.write("Ns 20\n")
+            mtl_file.write("Kd 0 0.1 0.0\n")
+            mtl_file.write("Ks 0.1 0.1 0.1\n")
+            mtl_file.write("Ns 10\n")
+            mtl_file.write("d 0.5\n")
+            mtl_file.write("illum 2\n")
 
     def calculate_normal(self, vertices, faces):
         normals = np.zeros((len(vertices), 3), dtype=float)
