@@ -76,20 +76,15 @@ class Objwriter:
         with open("output/"+file_path + '.mtl', 'w') as mtl_file:
             mtl_file.write("# Material for Tree\n")
             mtl_file.write("newmtl stem_material\n")
-            mtl_file.write("Ka 1.0 0.0 0.0\n")
-            mtl_file.write("Kd 1 0.0 0.0\n")
-            mtl_file.write("Ks 0.1 0.1 0.1\n")
-            mtl_file.write("Ns 10\n")
-            mtl_file.write("d 0.5\n")
-            mtl_file.write("illum 2\n")
+            mtl_file.write("Ka 0.4 0.5 0.3\n")
+            mtl_file.write("Kd 0.4 0.3 0.2\n")
+            mtl_file.write("Ks 1.0 1.0 1.0\n")
+            mtl_file.write("illum 1\n")
 
             mtl_file.write("newmtl leaf_material\n")
-            mtl_file.write("Ka 0.0 1.0 0.0\n")
-            mtl_file.write("Kd 0 0.1 0.0\n")
-            mtl_file.write("Ks 0.1 0.1 0.1\n")
-            mtl_file.write("Ns 10\n")
-            mtl_file.write("d 0.5\n")
-            mtl_file.write("illum 2\n")
+            mtl_file.write("Ka 0.0 0.2 0.0\n")
+            mtl_file.write("Kd 0.0 0.8 0.0\n")
+            mtl_file.write("illum 1\n")
 
     def calculate_normal(self, vertices, faces):
         """Unused function to calculate the vertex nomrals

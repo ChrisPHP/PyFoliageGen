@@ -7,6 +7,8 @@ import argparse
 import objwriter
 import lsystem
 
+obj = objwriter.Objwriter()
+
 def create_tree(name: str, file_name: str):
     with open('rules.json') as f:
         data = json.load(f)
@@ -16,7 +18,6 @@ def create_tree(name: str, file_name: str):
         lsys = lsystem.Lsystem(rules=rules["rules"], leaf=rules["leaf"])
     else:
         lsys = lsystem.Lsystem(rules=rules["rules"])
-    obj = objwriter.Objwriter()
 
     output = lsys.create_lsystem(iterations=5, axiom=rules["axiom"], leaf=False)
     meshes, leaves = lsys.draw_lsystem(instructions=output, angle=22, distance=2)
@@ -31,7 +32,6 @@ def create_tree(name: str, file_name: str):
         obj.generate_obj(file_path=file_name, mesh=mesh, leaves=leaves)
     else:
         obj.generate_obj(file_path=file_name, mesh=mesh)
-    obj.generate_mtl(file_path=file_name)
 
 
 def divide_and_conquer(plants_to_generate: int, name: str, number: str):
@@ -69,7 +69,6 @@ if __name__ == "__main__":
     for i in range(remaining):
         chunks[i] += 1
 
-
     processes = []
 
     index = 0
@@ -81,3 +80,5 @@ if __name__ == "__main__":
 
     for p in processes:
         p.join()
+
+    obj.generate_mtl(file_path=args.tn+"-1")
