@@ -26,7 +26,6 @@ class Lsystem:
         stack: list = []
         meshes: list = []
         leaves: list = []
-        cylinders: list = []
 
         for char in instructions:
             if char == "F":
@@ -34,9 +33,6 @@ class Lsystem:
                 endx = posx + endposx
                 endy = posy + endposy
                 endz = posz + endposz
-                if tropism_bool == True:
-                    cylinder = Cylinder(base=[posx, posy, posz], top=[endx, endy, endz])
-                    cylinders.append(cylinder)
                 if triangulate == True:
                     meshes.append([posx, posy, posz])
                     meshes.append([endx, endy, endz])
@@ -47,13 +43,17 @@ class Lsystem:
                 posy = endy
                 posz = endz
             elif char == "+":
-                vertical_angle += angle
+                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
+                vertical_angle += bent_angle
             elif char == "-":
-                vertical_angle -= angle
+                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
+                vertical_angle -= bent_angle
             elif char == "/":
-                horizontal_angle += angle
+                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
+                horizontal_angle += bent_angle
             elif char == "\\":
-                horizontal_angle -= angle
+                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
+                horizontal_angle -= bent_angle
             elif char == "[":
                 stack.append({
                     'posx': posx,
@@ -72,18 +72,6 @@ class Lsystem:
                 horizontal_angle = popped['horizontal_angle']
                 distance = popped['distance']
                 stack.pop()
-            elif char == "<":
-                tropism_bool = True
-            elif char == ">":
-                tropism_bool = False
-                tropism_vector = np.array([0, 0, -1])  # Bending downward
-                max_position_x = max(cylinder.base[0] for cylinder in cylinders)
-                bending_function = lambda position: np.arctan(position[0] / max_position_x)  # Example bending function
-                troped = self.apply_tropism(cylinders=cylinders, tropism_vector=tropism_vector, bending_function=bending_function)
-                for cyl in troped:
-                    mesh = pymesh.generate_cylinder(p0=cyl.base, p1=cyl.top, r0=0.2, r1=0.2, num_segments=16)
-                    meshes.append(mesh)
-                cylinders = []
             elif char == "L":
                 output = self.create_lsystem(5, self.leaf["axiom"], leaf=True)
                 leaf, _ = self.draw_lsystem(instructions=output,
@@ -116,33 +104,10 @@ class Lsystem:
         Z = radian * math.cos(theta_horizontal)
         return X, Y, Z
 
-    def rotate_vector(self, vector, axis, angle):
-        axis = axis / np.linalg.norm(axis)
-        rotation_matrix = np.array([
-            [np.cos(angle) + axis[0]**2 * (1 - np.cos(angle)),
-            axis[0] * axis[1] * (1 - np.cos(angle)) - axis[2] * np.sin(angle),
-            axis[0] * axis[2] * (1 - np.cos(angle)) + axis[1] * np.sin(angle)],
-            [axis[1] * axis[0] * (1 - np.cos(angle)) + axis[2] * np.sin(angle),
-            np.cos(angle) + axis[1]**2 * (1 - np.cos(angle)),
-            axis[1] * axis[2] * (1 - np.cos(angle)) - axis[0] * np.sin(angle)],
-            [axis[2] * axis[0] * (1 - np.cos(angle)) - axis[1] * np.sin(angle),
-            axis[2] * axis[1] * (1 - np.cos(angle)) + axis[0] * np.sin(angle),
-            np.cos(angle) + axis[2]**2 * (1 - np.cos(angle))]
-        ])
-        return np.dot(rotation_matrix, vector)
-
-    def apply_tropism(self, cylinders, tropism_vector, bending_function):
-        """
-        Apply tropism effect to a list of cylinders.
-        """
-        for i in range(len(cylinders)-1):
-            bending_angle = bending_function(cylinders[i].base)
-            if (i > 0):
-                cylinders[i].base = cylinders[i-1].top
-            else:
-                cylinders[i].base = self.rotate_vector(cylinders[i].base, tropism_vector, bending_angle)
-            cylinders[i].top = self.rotate_vector(cylinders[i].top, tropism_vector, bending_angle)
-        return cylinders
+    def calculate_bending_angle(self, elasticity: float, angle: float, position: list, tropism: list) -> float:
+        alpha = math.radians(angle)
+        HT_diff = math.sqrt((position[0] - tropism[0])**2 + (position[1] - tropism[1])**2 + (position[2] - tropism[2])**2)
+        return elasticity * ((math.cos(alpha) - math.sin(alpha) * HT_diff) / HT_diff) * (position[0] * tropism[0] + position[1] * tropism[1] + position[2] * tropism[2])
 
 
     def apply_rules(self, char: str) -> str:
