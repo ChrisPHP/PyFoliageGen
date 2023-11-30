@@ -2,6 +2,7 @@ import random
 import math
 import pymesh
 import numpy as np
+import pyvista as pv
 
 class Cylinder:
     def __init__(self, base, top):
@@ -13,7 +14,7 @@ class Lsystem:
         self.rules = rules
         self.leaf = leaf
 
-    def draw_lsystem(self, instructions: str, angle: float, distance: float, start_pos: list = [0,0,0], angles: list = [90, 90]) -> list:
+    def draw_lsystem(self, instructions: str, distance: float, angle: float, start_pos: list = [0,0,0], angles: list = [90, 90], triangulate: bool = False) -> list:
         """Main function for creating the 3D model for the Lsystem tree.
         """
         posx: float = start_pos[0]
@@ -26,6 +27,7 @@ class Lsystem:
         meshes: list = []
         leaves: list = []
         cylinders: list = []
+
         for char in instructions:
             if char == "F":
                 endposx, endposy, endposz = self.polar_to_cartesian(radian=distance, horizontal_angle=horizontal_angle, vertical_angle=vertical_angle)
@@ -35,6 +37,9 @@ class Lsystem:
                 if tropism_bool == True:
                     cylinder = Cylinder(base=[posx, posy, posz], top=[endx, endy, endz])
                     cylinders.append(cylinder)
+                if triangulate == True:
+                    meshes.append([posx, posy, posz])
+                    meshes.append([endx, endy, endz])
                 else:
                     mesh = pymesh.generate_cylinder(p0=[posx, posy, posz], p1=[endx, endy, endz], r0=0.2, r1=0.2, num_segments=16)
                     meshes.append(mesh)
@@ -50,7 +55,14 @@ class Lsystem:
             elif char == "\\":
                 horizontal_angle -= angle
             elif char == "[":
-                stack.append({'posx': posx, 'posy': posy, 'posz': posz, 'vertical_angle': vertical_angle, 'horizontal_angle': horizontal_angle, 'distance': distance})
+                stack.append({
+                    'posx': posx,
+                    'posy': posy,
+                    'posz': posz,
+                    'vertical_angle': vertical_angle,
+                    'horizontal_angle': horizontal_angle,
+                    'distance': distance
+                })
             elif char == "]":
                 popped = stack[len(stack)-1]
                 posx = popped['posx']
@@ -74,9 +86,22 @@ class Lsystem:
                 cylinders = []
             elif char == "L":
                 output = self.create_lsystem(5, self.leaf["axiom"], leaf=True)
-                leaf, _ = self.draw_lsystem(instructions=output, angle=22, distance=0.5, start_pos=[posx, posy, posz], angles=[vertical_angle, horizontal_angle])
-                merged_mesh = pymesh.merge_meshes(leaf)
-                mesh = pymesh.convex_hull(merged_mesh)
+                leaf, _ = self.draw_lsystem(instructions=output,
+                                            distance=1,
+                                            angle=20,
+                                            start_pos=[posx, posy, posz],
+                                            angles=[vertical_angle, horizontal_angle],
+                                            triangulate=self.leaf["2d"])
+                if self.leaf["2d"]:
+                    cloud = pv.PolyData(leaf)
+                    surf = cloud.delaunay_2d()
+                    surf_points = surf.extract_surface().points
+
+                    mesh = pymesh.form_mesh(surf_points, surf.regular_faces)
+                else:
+                    merged_mesh = pymesh.merge_meshes(leaf)
+                    mesh = pymesh.convex_hull(merged_mesh)
+
                 leaves.append(mesh)
         return meshes, leaves
 
@@ -95,13 +120,13 @@ class Lsystem:
         axis = axis / np.linalg.norm(axis)
         rotation_matrix = np.array([
             [np.cos(angle) + axis[0]**2 * (1 - np.cos(angle)),
-            axis[0] * axis[1] * (1 - np.cos(angle)) - axis[2] * np.sin(angle), 
+            axis[0] * axis[1] * (1 - np.cos(angle)) - axis[2] * np.sin(angle),
             axis[0] * axis[2] * (1 - np.cos(angle)) + axis[1] * np.sin(angle)],
-            [axis[1] * axis[0] * (1 - np.cos(angle)) + axis[2] * np.sin(angle), 
+            [axis[1] * axis[0] * (1 - np.cos(angle)) + axis[2] * np.sin(angle),
             np.cos(angle) + axis[1]**2 * (1 - np.cos(angle)),
             axis[1] * axis[2] * (1 - np.cos(angle)) - axis[0] * np.sin(angle)],
-            [axis[2] * axis[0] * (1 - np.cos(angle)) - axis[1] * np.sin(angle), 
-            axis[2] * axis[1] * (1 - np.cos(angle)) + axis[0] * np.sin(angle), 
+            [axis[2] * axis[0] * (1 - np.cos(angle)) - axis[1] * np.sin(angle),
+            axis[2] * axis[1] * (1 - np.cos(angle)) + axis[0] * np.sin(angle),
             np.cos(angle) + axis[2]**2 * (1 - np.cos(angle))]
         ])
         return np.dot(rotation_matrix, vector)

@@ -19,14 +19,14 @@ def create_tree(name: str, file_name: str):
     else:
         lsys = lsystem.Lsystem(rules=rules["rules"])
 
-    output = lsys.create_lsystem(iterations=5, axiom=rules["axiom"], leaf=False)
-    meshes, leaves = lsys.draw_lsystem(instructions=output, angle=22, distance=2)
-
+    output = lsys.create_lsystem(iterations=6, axiom=rules["axiom"], leaf=False)
+    meshes, leaves = lsys.draw_lsystem(instructions=output, angle=22, distance=1)
 
     merged_mesh = pymesh.merge_meshes(meshes)
     mesh, info = pymesh.collapse_short_edges(merged_mesh, 0.1)
     mesh, info = pymesh.remove_duplicated_vertices(mesh, 0.1)
     mesh, info = pymesh.remove_duplicated_faces(mesh)
+
 
     if len(leaves) > 0:
         obj.generate_obj(file_path=file_name, mesh=mesh, leaves=leaves)
