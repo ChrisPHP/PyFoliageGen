@@ -15,9 +15,9 @@ def create_tree(name: str, file_name: str):
     rules = data[name]
 
     if "leaf" in rules:
-        lsys = lsystem.Lsystem(rules=rules["rules"], leaf=rules["leaf"])
+        lsys = lsystem.Lsystem(rules=rules["rules"], radius=rules["radius"], leaf=rules["leaf"])
     else:
-        lsys = lsystem.Lsystem(rules=rules["rules"])
+        lsys = lsystem.Lsystem(rules=rules["rules"], radius=rules["radius"])
 
     output = lsys.create_lsystem(iterations=6, axiom=rules["axiom"], leaf=False)
     meshes, leaves = lsys.draw_lsystem(instructions=output, angle=20, distance=1)

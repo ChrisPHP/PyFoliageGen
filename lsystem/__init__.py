@@ -10,9 +10,10 @@ class Cylinder:
         self.top = top
 
 class Lsystem:
-    def __init__(self, rules: list, leaf: dict = {}):
+    def __init__(self, rules: list, radius: float, leaf: dict = {}):
         self.rules = rules
         self.leaf = leaf
+        self.radius = radius
 
     def draw_lsystem(self, instructions: str, distance: float, angle: float, start_pos: list = [0,0,0], angles: list = [90, 90], triangulate: bool = False) -> list:
         """Main function for creating the 3D model for the Lsystem tree.
@@ -22,13 +23,17 @@ class Lsystem:
         posz: float = start_pos[2]
         vertical_angle: float = angles[0]
         horizontal_angle: float = angles[1]
-        tropism_bool = False
+        start_radius = self.radius
+        end_radius = self.radius - 0.05
         stack: list = []
         meshes: list = []
         leaves: list = []
 
         for char in instructions:
             if char == "F":
+                bent_angle = self.calculate_bending_angle(elasticity=0.2, angle=9.8, position=[posx, posy, posz], tropism=[0.2, 0.2, 2])
+                vertical_angle += bent_angle
+                horizontal_angle += bent_angle
                 endposx, endposy, endposz = self.polar_to_cartesian(radian=distance, horizontal_angle=horizontal_angle, vertical_angle=vertical_angle)
                 endx = posx + endposx
                 endy = posy + endposy
@@ -37,23 +42,24 @@ class Lsystem:
                     meshes.append([posx, posy, posz])
                     meshes.append([endx, endy, endz])
                 else:
-                    mesh = pymesh.generate_cylinder(p0=[posx, posy, posz], p1=[endx, endy, endz], r0=0.2, r1=0.2, num_segments=16)
+                    mesh = pymesh.generate_cylinder(p0=[posx, posy, posz], p1=[endx, endy, endz], r0=start_radius, r1=end_radius, num_segments=16)
                     meshes.append(mesh)
                 posx = endx
                 posy = endy
                 posz = endz
+                if start_radius >= 0.2:
+                    start_radius -= 0.06
+                    end_radius -= 0.06
+                elif start_radius != end_radius:
+                    end_radius = start_radius
             elif char == "+":
-                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
-                vertical_angle += bent_angle
+                vertical_angle += angle
             elif char == "-":
-                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
-                vertical_angle -= bent_angle
+                vertical_angle -= angle
             elif char == "/":
-                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
-                horizontal_angle += bent_angle
+                horizontal_angle += angle
             elif char == "\\":
-                bent_angle = self.calculate_bending_angle(elasticity=0.35, angle=angle, position=[posx, posy, posz], tropism=[1, 1, 10])
-                horizontal_angle -= bent_angle
+                horizontal_angle -= angle
             elif char == "[":
                 stack.append({
                     'posx': posx,
@@ -61,7 +67,9 @@ class Lsystem:
                     'posz': posz,
                     'vertical_angle': vertical_angle,
                     'horizontal_angle': horizontal_angle,
-                    'distance': distance
+                    'distance': distance,
+                    'start_radius': start_radius,
+                    'end_radius': end_radius
                 })
             elif char == "]":
                 popped = stack[len(stack)-1]
@@ -71,6 +79,8 @@ class Lsystem:
                 vertical_angle = popped['vertical_angle']
                 horizontal_angle = popped['horizontal_angle']
                 distance = popped['distance']
+                start_radius = popped['start_radius']
+                end_radius = popped['end_radius']
                 stack.pop()
             elif char == "L":
                 output = self.create_lsystem(5, self.leaf["axiom"], leaf=True)

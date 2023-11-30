@@ -1,6 +1,7 @@
 {
     "stick": {
         "axiom": "X",
+        "radius": 5,
         "rules": [
             {"F": "FF"},
             {"X": {
