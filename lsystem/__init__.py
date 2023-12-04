@@ -10,10 +10,11 @@ class Cylinder:
         self.top = top
 
 class Lsystem:
-    def __init__(self, rules: list, radius: float, leaf: dict = {}):
+    def __init__(self, rules: list, start_radius: float = 0.5, end_radius: float = 0.5, leaf: dict = {}):
         self.rules = rules
         self.leaf = leaf
-        self.radius = radius
+        self.start_radius = start_radius
+        self.end_radius = end_radius
 
     def draw_lsystem(self, instructions: str, distance: float, angle: float, start_pos: list = [0,0,0], angles: list = [90, 90], triangulate: bool = False) -> list:
         """Main function for creating the 3D model for the Lsystem tree.
@@ -23,8 +24,8 @@ class Lsystem:
         posz: float = start_pos[2]
         vertical_angle: float = angles[0]
         horizontal_angle: float = angles[1]
-        start_radius = self.radius
-        end_radius = self.radius - 0.05
+        start_radius = self.start_radius
+        end_radius = self.start_radius
         stack: list = []
         meshes: list = []
         leaves: list = []
@@ -47,7 +48,7 @@ class Lsystem:
                 posx = endx
                 posy = endy
                 posz = endz
-                if start_radius >= 0.2:
+                if start_radius >= self.end_radius:
                     start_radius -= 0.06
                     end_radius -= 0.06
                 elif start_radius != end_radius:
@@ -101,6 +102,10 @@ class Lsystem:
                     mesh = pymesh.convex_hull(merged_mesh)
 
                 leaves.append(mesh)
+            elif char == "O":
+                endposx, endposy, endposz = self.polar_to_cartesian(radian=distance, horizontal_angle=horizontal_angle, vertical_angle=vertical_angle)
+                mesh = pymesh.generate_icosphere(distance, [posx, posy, posz])
+                meshes.append(mesh)
         return meshes, leaves
 
     def polar_to_cartesian(self, radian: float, horizontal_angle: float, vertical_angle: float) -> float:

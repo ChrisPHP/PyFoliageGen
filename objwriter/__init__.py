@@ -1,6 +1,8 @@
 from pymesh import Mesh
 import numpy as np
 
+from . import textures
+
 class Objwriter:
     def create_independent_faces(self, faces, max_verts):
         """This function make sure each object is using the correct
@@ -18,6 +20,7 @@ class Objwriter:
         """This function creates the obj file for the L-system. It seperates the leaves
            from the main stem making them seperate objs and can apply seperate textures
         """
+
         vertices = mesh.vertices
         faces = mesh.faces
         max_verts = mesh.num_vertices
@@ -72,6 +75,9 @@ class Objwriter:
         """This function creates the mtl file for the l-system tree
         """
 
+        txt = textures.Textures()
+        tuple = txt.get_palette_colours()
+
         # Write MTL file
         with open("output/"+file_path + '.mtl', 'w') as mtl_file:
             mtl_file.write("# Material for Tree\n")
@@ -82,9 +88,10 @@ class Objwriter:
             mtl_file.write("illum 1\n")
 
             mtl_file.write("newmtl leaf_material\n")
-            mtl_file.write("Ka 0.0 0.2 0.0\n")
-            mtl_file.write("Kd 0.0 0.8 0.0\n")
-            mtl_file.write("illum 1\n")
+            mtl_file.write("Ka 0.0 0.0 0.0\n")
+            mtl_file.write("Kd {} {} {}\n".format(tuple[0], tuple[1], tuple[2]))
+            mtl_file.write("Ks 0.0 0.0 0.0\n")
+            mtl_file.write("Ns 50\n")
 
     def calculate_normal(self, vertices, faces):
         """Unused function to calculate the vertex nomrals

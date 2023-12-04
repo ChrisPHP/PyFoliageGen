@@ -1,4 +1,3 @@
-import numpy as np
 import pymesh
 import multiprocessing
 import json
@@ -14,18 +13,24 @@ def create_tree(name: str, file_name: str):
         data = json.load(f)
     rules = data[name]
 
+    start_radius = 0.5
+    end_radius = 0.5
+    if "start_radius" in rules and "end_radius" in rules:
+        start_radius = rules["start_radius"]
+        end_radius = rules["end_radius"]
+
     if "leaf" in rules:
-        lsys = lsystem.Lsystem(rules=rules["rules"], radius=rules["radius"], leaf=rules["leaf"])
+        lsys = lsystem.Lsystem(rules=rules["rules"], start_radius=start_radius, end_radius=end_radius,  leaf=rules["leaf"])
     else:
-        lsys = lsystem.Lsystem(rules=rules["rules"], radius=rules["radius"])
+        lsys = lsystem.Lsystem(rules=rules["rules"], start_radius=start_radius, end_radius=end_radius)
 
     output = lsys.create_lsystem(iterations=6, axiom=rules["axiom"], leaf=False)
     meshes, leaves = lsys.draw_lsystem(instructions=output, angle=20, distance=1)
 
     merged_mesh = pymesh.merge_meshes(meshes)
-    mesh, info = pymesh.collapse_short_edges(merged_mesh, 0.1)
-    mesh, info = pymesh.remove_duplicated_vertices(mesh, 0.1)
-    mesh, info = pymesh.remove_duplicated_faces(mesh)
+    mesh, _ = pymesh.collapse_short_edges(merged_mesh, 0.1)
+    mesh, _ = pymesh.remove_duplicated_vertices(mesh, 0.1)
+    mesh, _ = pymesh.remove_duplicated_faces(mesh)
 
 
     if len(leaves) > 0:
