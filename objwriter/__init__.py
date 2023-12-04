@@ -1,5 +1,6 @@
 from pymesh import Mesh
 import numpy as np
+import random
 
 from . import textures
 
@@ -47,10 +48,11 @@ class Objwriter:
             if  leaves != None:
                 obj_file.write("\n")
                 obj_file.write("g leaves\n")
-                obj_file.write("usemtl leaf_material\n")
                 index = 0
                 for leaf in leaves:
                     index += 1
+                    rand_texture = random.randrange(0, 5)
+                    obj_file.write("usemtl leaf_material-{}\n".format(rand_texture))
                     obj_file.write("\n")
                     obj_file.write(f"o leaf-{index}\n")
                     obj_file.write("\n")
@@ -76,7 +78,7 @@ class Objwriter:
         """
 
         txt = textures.Textures()
-        tuple = txt.get_palette_colours()
+        leaf_colours = txt.get_palette_colours()
 
         # Write MTL file
         with open("output/"+file_path + '.mtl', 'w') as mtl_file:
@@ -87,11 +89,16 @@ class Objwriter:
             mtl_file.write("Ks 1.0 1.0 1.0\n")
             mtl_file.write("illum 1\n")
 
-            mtl_file.write("newmtl leaf_material\n")
-            mtl_file.write("Ka 0.0 0.0 0.0\n")
-            mtl_file.write("Kd {} {} {}\n".format(tuple[0], tuple[1], tuple[2]))
-            mtl_file.write("Ks 0.0 0.0 0.0\n")
-            mtl_file.write("Ns 50\n")
+            index = 0
+            for leaf in leaf_colours:
+                mtl_file.write("newmtl leaf_material-{}\n".format(index))
+                mtl_file.write("Ka 0.0 0.0 0.0\n")
+                mtl_file.write("Kd {} {} {}\n".format(leaf[0], leaf[1], leaf[2]))
+                mtl_file.write("Ks 0.0 0.0 0.0\n")
+                #mtl_file.write("d 0.5\n")
+                mtl_file.write("Ns 50\n")
+                #mtl_file.write("Ke 1.0, 1.0, 1.0\n")
+                index += 1
 
     def calculate_normal(self, vertices, faces):
         """Unused function to calculate the vertex nomrals

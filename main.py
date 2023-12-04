@@ -38,6 +38,7 @@ def create_tree(name: str, file_name: str):
     else:
         obj.generate_obj(file_path=file_name, mesh=mesh)
 
+    obj.generate_mtl(file_path=file_name)
 
 def divide_and_conquer(plants_to_generate: int, name: str, number: str):
     index = number
@@ -85,5 +86,3 @@ if __name__ == "__main__":
 
     for p in processes:
         p.join()
-
-    obj.generate_mtl(file_path=args.tn+"-1")
