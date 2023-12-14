@@ -78,14 +78,14 @@ class Objwriter:
         """
 
         txt = textures.Textures()
-        leaf_colours = txt.get_palette_colours()
-
+        wood = txt.get_palette_colours("YlOrBr")
+        leaf_colours = txt.get_palette_colours("YlGn")
         # Write MTL file
         with open("output/"+file_path + '.mtl', 'w') as mtl_file:
             mtl_file.write("# Material for Tree\n")
             mtl_file.write("newmtl stem_material\n")
             mtl_file.write("Ka 0.4 0.5 0.3\n")
-            mtl_file.write("Kd 0.4 0.3 0.2\n")
+            mtl_file.write("Kd {} {} {}\n".format(wood[0][0], wood[1][1], wood[2][2]))
             mtl_file.write("Ks 1.0 1.0 1.0\n")
             mtl_file.write("illum 1\n")
 
